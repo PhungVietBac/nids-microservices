@@ -1,0 +1,4 @@
+scapy
+pika
+ujson
+python-dotenv

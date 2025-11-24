@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pika
+asyncpg
+sqlalchemy[asyncio]
+databases
+psycopg2-binary
+pydantic
+ujson
+python-dotenv
+aiohttp
