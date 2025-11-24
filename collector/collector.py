@@ -1,5 +1,4 @@
 import os
-import json
 import time
 from scapy.all import sniff, Raw, IP, TCP, UDP
 import pika
