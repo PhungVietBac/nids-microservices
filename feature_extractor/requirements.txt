@@ -9,3 +9,4 @@ pydantic
 ujson
 python-dotenv
 aiohttp
+requests

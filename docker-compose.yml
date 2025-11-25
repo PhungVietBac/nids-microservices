@@ -1,0 +1,71 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nids
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  collector:
+    build: ./collector
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/%2F"
+      COLLECTOR_QUEUE: packets
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  feature_extractor:
+    build: ./feature_extractor
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/%2F"
+      COLLECTOR_QUEUE: packets
+      INFERENCE_URL: "http://inference:9000/infer"
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/nids"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - postgres
+
+  inference:
+    build: ./inference_service
+    environment:
+      MODEL_PATH: "/models/autoencoder.joblib"
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./models:/models
+    depends_on:
+      - postgres
+
+  trainer:
+    build: ./training
+    environment:
+      DATABASE_SYNC_URL: "postgresql://postgres:postgres@postgres:5432/nids"
+      MODEL_OUT: "/models/autoencoder.joblib"
+    volumes:
+      - ./models:/models
+    depends_on:
+      - postgres
+    command: ["python", "train.py"]
+
+volumes:
+ pgdata:

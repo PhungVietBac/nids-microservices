@@ -1,11 +1,9 @@
 import os
-import asyncio
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import insert
 from sqlalchemy.orm import sessionmaker
-from features import extract_basic_features
 from dotenv import load_dotenv
 from worker import features_table, engine
 
